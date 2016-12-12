@@ -15,7 +15,7 @@ def synthesize(img_path, block_size, tiling=None, magnify_by=2, overlap_size=Non
         return
 
     if tiling is None:
-        tiling = Tiling.MATCHED
+        tiling = Tiling.SIMPLE
 
     image = io.get_img(img_path)
     block_size = np.asarray(block_size)
@@ -29,4 +29,4 @@ def synthesize(img_path, block_size, tiling=None, magnify_by=2, overlap_size=Non
         overlap_size = np.asarray(overlap_size)
 
 
-synthesize("images\\texture.jpg", [10, 10])
+synthesize("\\..\\images\\texture.jpg", [10, 10])
