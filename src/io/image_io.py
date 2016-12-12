@@ -1,17 +1,16 @@
-import cv2 as cv
+from PIL import Image
+import numpy as np
+
 
 def get_img(path):
-	img = cv.imread(path,1)
-	return img
+    return np.asarray(Image.open(path))
 
-def save_img(name,image):
-	cv.imwrite(name, image)
+
+def save_img(name, image):
+    im = Image.fromarray(np.uint8(image))
+    im.save(name, "jpeg")
+
 
 def show_img(img):
-	cv.imshow('image',img)
-	cv.waitKey(0)
-	cv.destroyAllWindows()
-
-def split_channels(img):
-	b,g,r = cv.split(img)
-	return r,g,b
+    im = Image.fromarray(np.uint8(img))
+    im.show()

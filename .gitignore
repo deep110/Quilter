@@ -1,3 +1,11 @@
 papers/
+env/
+
+#Python Generated
 *.pyc
-ImageFile.java
+
+#IDE Generated
+*.idea
+
+#Other Ignores
+*.java
