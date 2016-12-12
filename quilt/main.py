@@ -2,12 +2,18 @@ import numpy as np
 from utils.enum import Enum
 import io
 import tile
+import os
+import sys
 
 
 Tiling = Enum(["SIMPLE", "MATCHED"])
 
 
 def synthesize(img_path, block_size, tiling=None, magnify_by=2, overlap_size=None):
+    base_path = os.path.dirname(os.path.realpath(sys.argv[0]))
+
+    print(base_path)
+
     if img_path is None:
         return
 
@@ -17,6 +23,7 @@ def synthesize(img_path, block_size, tiling=None, magnify_by=2, overlap_size=Non
     if tiling is None:
         tiling = Tiling.SIMPLE
 
+    img_path = base_path + "/" + img_path
     image = io.get_img(img_path)
     block_size = np.asarray(block_size)
 
@@ -27,6 +34,3 @@ def synthesize(img_path, block_size, tiling=None, magnify_by=2, overlap_size=Non
             overlap_size = block_size / 6
 
         overlap_size = np.asarray(overlap_size)
-
-
-synthesize("\\..\\images\\texture.jpg", [10, 10])
