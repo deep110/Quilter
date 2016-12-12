@@ -1,3 +1,4 @@
 import quilt as qt
 
-qt.synthesize("images/texture.jpg", [10, 10])
+i = qt.synthesize("images/texture.jpg", [40, 40])
+qt.show_img(i)

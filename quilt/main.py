@@ -12,8 +12,6 @@ Tiling = Enum(["SIMPLE", "MATCHED"])
 def synthesize(img_path, block_size, tiling=None, magnify_by=2, overlap_size=None):
     base_path = os.path.dirname(os.path.realpath(sys.argv[0]))
 
-    print(base_path)
-
     if img_path is None:
         return
 
@@ -28,9 +26,11 @@ def synthesize(img_path, block_size, tiling=None, magnify_by=2, overlap_size=Non
     block_size = np.asarray(block_size)
 
     if tiling == Tiling.SIMPLE:
-        tile.simple_tiling(image, block_size, magnify_by)
+        result = tile.simple_tiling(image, block_size, magnify_by)
     else:
         if overlap_size is None:
             overlap_size = block_size / 6
 
-        overlap_size = np.asarray(overlap_size)
+        result = np.asarray(overlap_size)
+
+    return result

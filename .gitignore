@@ -1,4 +1,4 @@
-papers/
+#Virtual Environments
 env/
 
 #Python Generated
@@ -9,3 +9,4 @@ env/
 
 #Other Ignores
 *.java
+papers/
