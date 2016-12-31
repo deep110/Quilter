@@ -3,7 +3,7 @@ import numpy as np
 
 
 def get_img(path):
-    return np.asarray(Image.open(path))
+    return np.asarray(Image.open(path), np.float32)
 
 
 def save_img(name, image):

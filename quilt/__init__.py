@@ -1,3 +1,3 @@
 from main import *
-from io import show_img
-from io import save_img
+from image_io import show_img
+from image_io import save_img

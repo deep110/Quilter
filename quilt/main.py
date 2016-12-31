@@ -1,6 +1,6 @@
 import numpy as np
 from utils.enum import Enum
-import io
+import image_io as io
 import tile
 import os
 import sys
@@ -19,18 +19,24 @@ def synthesize(img_path, block_size, tiling=None, magnify_by=2, overlap_size=Non
         return
 
     if tiling is None:
-        tiling = Tiling.SIMPLE
+        tiling = Tiling.MATCHED
 
     img_path = base_path + "/" + img_path
     image = io.get_img(img_path)
     block_size = np.asarray(block_size)
 
+    image_shape = np.asarray(image.shape)
+    target_shape = (magnify_by * image_shape)
+    if int(image_shape.shape[0]) > 2:
+        target_shape[2] = image_shape[2]
+
     if tiling == Tiling.SIMPLE:
-        result = tile.simple_tiling(image, block_size, magnify_by)
+        result = tile.simple_tiling(image, block_size, target_shape)
     else:
         if overlap_size is None:
             overlap_size = block_size / 6
 
-        result = np.asarray(overlap_size)
+        overlap_size = np.asarray(overlap_size)
+        result = tile.matched_tiling(image, block_size, target_shape, overlap_size)
 
     return result
