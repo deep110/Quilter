@@ -29,7 +29,7 @@ def matched_tiling(img, block_size, target_shape, overlap_size):
 
             anchor = Anchor(output[row1:row2, col1:col2], row1, col1, overlap_size)
             patch = matched_crop(img, np.asarray([row2 - row1, col2 - col1]), anchor)
-            anchor.stitch(patch)
+            output[row1:row2, col1:col2] = anchor.stitch(patch)
 
     return output
 
@@ -59,14 +59,14 @@ class Anchor(object):
 
         # calculate vertical strip error (includes overlap region)
         if self.__col_index != 0:
-            b1 = self.__data[:, : self.__overlap_size[1]]
-            b2 = patch[:, : self.__overlap_size[1]]
+            b1 = self.__data[:, 0: self.__overlap_size[1]]
+            b2 = patch[:, 0: self.__overlap_size[1]]
             total_error += np.sum(self.__calc_pixel_error(b1, b2))
 
         # calculate horizontal strip error (excludes overlap region, since its 
         # already included above)
         if self.__row_index != 0:
-            b1 = self.__data[: self.__overlap_size[0], self.__overlap_size[1]:]
+            b1 = self.__data[0: self.__overlap_size[0], self.__overlap_size[1]:]
             b2 = patch[: self.__overlap_size[0], self.__overlap_size[1]:]
             total_error += np.sum(self.__calc_pixel_error(b1, b2))
 
@@ -75,6 +75,84 @@ class Anchor(object):
     def stitch(self, patch):
         if self.__row_index == 0 and self.__col_index == 0:
             return patch
+
+        vertical_error, vertical_offset = None, None
+        horizontal_error, horizontal_offset = None, None
+
+        if self.__col_index != 0:
+            b1 = self.__data[:, 0: self.__overlap_size[1]]
+            b2 = patch[:, 0: self.__overlap_size[1]]
+
+            vertical_error = self.__calc_pixel_error(b1, b2)
+            error_shape = vertical_error.shape
+            vertical_offset = np.zeros(error_shape, np.int8)
+
+            for i in range(error_shape[0]-2, -1, -1):
+                for j in range(0, error_shape[1]):
+                    fix_offset = -1
+                    s_i = j-1
+                    if s_i < 0:
+                        s_i = 0
+                        fix_offset = 0
+
+                    e_i = j+2
+                    if e_i > error_shape[1]:
+                        e_i = error_shape[1]
+                    temp = vertical_error[i-1, s_i:e_i]
+                    vertical_error[i, j] += np.min(temp)
+                    vertical_offset[i, j] = np.argmin(temp)+fix_offset
+
+        if self.__row_index != 0:
+            b1 = self.__data[: self.__overlap_size[0], :]
+            b2 = patch[: self.__overlap_size[0], :]
+
+            horizontal_error = self.__calc_pixel_error(b1, b2)
+            error_shape = horizontal_error.shape
+            horizontal_offset = np.zeros(error_shape, np.int8)
+            for i in range(error_shape[1] - 2, -1, -1):
+                for j in range(0, error_shape[0]):
+                    fix_offset = -1
+                    s_i = j - 1
+                    if s_i < 0:
+                        s_i = 0
+                        fix_offset = 0
+
+                    e_i = j + 2
+                    if e_i > error_shape[1]:
+                        e_i = error_shape[1]
+                    temp = horizontal_error[s_i:e_i, i-1]
+                    horizontal_error[j, i] += np.min(temp)
+                    horizontal_offset[j, i] = np.argmin(temp) + fix_offset
+
+        if self.__row_index == 0:
+            min_j = np.argmin(vertical_error[0, :])
+            patch[0, :min_j] = self.__data[0, :min_j]
+            for i in range(1, vertical_error.shape[0]):
+                min_j += vertical_offset[i-1, min_j]
+                patch[i, 0:min_j] = self.__data[i, 0:min_j]
+
+        elif self.__col_index == 0:
+            min_i = np.argmin(horizontal_error[:, 0])
+            patch[0:min_i, 0] = self.__data[0:min_i, 0]
+            for j in range(1, horizontal_error.shape[1]):
+                min_i += horizontal_offset[min_i, j-1]
+                patch[0:min_i, j] = self.__data[0:min_i, j]
+
+        else:
+            error = vertical_error[0:self.__overlap_size[0], :] + horizontal_error[:, 0: self.__overlap_size[1]]
+            temp = np.argmin(error)
+            minI = min_i = temp/error.shape[0]
+            minJ = min_j = temp % error.shape[1]
+
+            for j in range(minJ, horizontal_error.shape[1]):
+                min_i += horizontal_offset[min_i, j-1]
+                patch[0:min_i, j] = self.__data[0:min_i, j]
+
+            for i in range(minI, vertical_error.shape[0]):
+                min_j += vertical_offset[i-1, min_j]
+                patch[i, 0:min_j] = self.__data[i, 0:min_j]
+
+        return patch
 
     @staticmethod
     def __split_channels(array):
