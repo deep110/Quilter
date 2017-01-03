@@ -1,5 +1,5 @@
 import numpy as np
-
+from PIL import Image
 
 def matched_tiling(img, block_size, target_shape, overlap_size):
 
@@ -10,14 +10,14 @@ def matched_tiling(img, block_size, target_shape, overlap_size):
     print("Total blocks to build: " + str(n_blocks[0] * n_blocks[1]))
     print("Building...")
 
-    for i in range(0, target_shape[0]):
+    for i in range(0, n_blocks[0]):
         row1 = i * new_block_size[0]
         row2 = min((i + 1) * new_block_size[0] + overlap_size[0], target_shape[1])
 
         if row2 - row1 < overlap_size[0]:
             continue
 
-        for j in range(0, target_shape[1]):
+        for j in range(0, n_blocks[1]):
             col1 = j * new_block_size[1]
             col2 = min((j + 1) * new_block_size[1] + overlap_size[1], target_shape[1])
 
@@ -29,7 +29,7 @@ def matched_tiling(img, block_size, target_shape, overlap_size):
 
             anchor = Anchor(output[row1:row2, col1:col2], row1, col1, overlap_size)
             patch = matched_crop(img, np.asarray([row2 - row1, col2 - col1]), anchor)
-            output[row1:row2, col1:col2] = anchor.stitch(patch)
+            output[row1:row2, col1:col2] = anchor.stitch(np.array(patch))
 
     return output
 
